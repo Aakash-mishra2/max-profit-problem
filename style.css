@@ -1,0 +1,17 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+  }
+  #input-form input {
+    padding: 10px;
+    margin: 5px 0;
+    width: 80%;
+  }
+  #output {
+    margin-top: 50px;
+  }
