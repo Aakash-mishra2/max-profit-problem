@@ -9,50 +9,74 @@ document.getElementById("input-form").addEventListener("submit", function (e) {
         return;
     }
 
-    const output = maximizeEarnings(timeInput);
-    const maxEarnings = output.result;
-    const amount = output.totalEarnings;
-
+    allBuildingsCombination = [];
+    const output = captializm(timeInput);
+    const maxEarnings = output[0];
+    const amount = output[1];
     outputDiv.innerHTML = `Optimal buildings for Max Earning: <br> Theatre &nbsp ${maxEarnings.T}, Pub &nbsp ${maxEarnings.P}, Commercial Park &nbsp ${maxEarnings.C} <br><br> Max Earnings Amount: ${amount}`;
 });
 
 
-function maximizeEarnings(n) {
-    // Property details: [time, earnings, label]
-    const properties = [
-        [5, 1500, "T"], // Theatre
-        [4, 1000, "P"], // Pub
-        [10, 3000, "C"] // Commercial Park
-    ];
+const build_times = {
+    T: 5,
+    P: 4,
+    C: 10,
+};
 
-    // Sort by earning per unit time (descending), then by time (ascending)
-    properties.sort((a, b) => {
-        const earningPerTimeA = a[1] / a[0];
-        const earningPerTimeB = b[1] / b[0];
-        if (earningPerTimeA === earningPerTimeB) {
-            return a[0] - b[0]; // Sort by time (ascending) if equal earning per time
-        }
-        return earningPerTimeB - earningPerTimeA; // Sort by earning per time (descending)
-    });
+const per_cycle_earnings = {
+    T: 1500,
+    P: 1000,
+    C: 3000,
+};
 
-    // Initialize counters for each property
-    const result = { T: 0, P: 0, C: 0 };
-    let totalEarnings = 0;
+const buildings = Object.keys(build_times);
 
-    // Fill the time with the best mix
-    while (n > 0) {
-        let built = false;
-        for (const [time, earnings, label] of properties) {
-            if (n >= time) { // If we can build this property
-                n -= time;
-                result[label]++;
-                totalEarnings += earnings * n;
-                built = true;
-                break;
-            }
-        }
-        if (!built) break; // No more time left to build anything
-    }
-    return { result, totalEarnings };
+can_build = (building, remaining_time) => {
+    return build_times[building] <= remaining_time;
+};
+
+function profit(remaining_time, building) {
+    return (
+        (remaining_time - build_times[building]) * per_cycle_earnings[building]
+    );
 }
 
+function max_profit(remaining_time) {
+    let profits = new Map();
+    for (let building of buildings) {
+        if (!can_build(building, remaining_time)) {
+            profits[building] = 0;
+            continue;
+        }
+        profits[building] = profit(remaining_time, building);
+    }
+
+    return Object.entries(profits).reduce((a, b) => (a[1] > b[1] ? a : b));
+}
+
+function captializm(remaining_time) {
+    let max_this_round = max_profit(remaining_time); // [building, profit]
+
+    if (max_this_round[1] === 0) {
+        return [
+            {
+                T: 0,
+                P: 0,
+                C: 0,
+            },
+            0,
+        ]; // Terminating condition for recursion
+    }
+
+    let building = max_this_round[0];
+    let profit = max_this_round[1];
+
+    let remaining_remaining_time = remaining_time - build_times[building];
+
+    let next_round = captializm(remaining_remaining_time); // [{[buildings]: count_of_appearance}, profit]
+
+    current_round = next_round[0];
+    current_round[building] += 1;
+
+    return [current_round, profit + next_round[1]];
+}
