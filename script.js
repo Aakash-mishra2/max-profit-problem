@@ -1,82 +1,43 @@
-document.getElementById("input-form").addEventListener("submit", function (e) {
-    e.preventDefault();
+function maxProfit() {
 
-    const timeInput = document.getElementById("time").value;
-    const outputDiv = document.getElementById("output");
+    function maximumProfit(n) {
+        let earningsPerUnit = [1500, 1000, 3000];
+        let units = [5, 4, 10];
 
-    if (timeInput.isNaN) {
-        outputDiv.innerHTML = "<p>Please enter valid numbers!</p>";
-        return;
+        let minUnit = Math.min(...units)
+        let totalEarningArray = [];
+
+        let tempResult = units.map((value, index) => {
+            let input = n;
+            let earnings = 0;
+            let tempArray = [];
+            while (input >= minUnit) {
+                input -= value;
+                if (input >= 0) {
+                    earnings += input * earningsPerUnit[index];
+                    tempArray.push(earnings);
+                }
+            }
+            totalEarningArray.push(earnings);
+            return tempArray;
+        });
+
+        let maxEarning = Math.max(...totalEarningArray);
+
+        let totalOutputArray = totalEarningArray.map((value, index) =>
+            maxEarning === value ? tempResult[index].length : 0);
+
+        let output = totalOutputArray.map((value, index) =>
+            value !== 0 ?
+                `${index + 1}. T: ${index === 0 ? value : 0} P: ${index === 1 ? value : 0} C: ${index === 2 ? value : 0} <br />`
+                : ""
+        ).join("");
+
+        document.getElementById("timeunit").innerHTML = `Time Unit: ${n}`;
+        document.getElementById("earnings").innerHTML = `Earnings: $${maxEarning}`;
+        document.getElementById("solution").innerHTML = `Solutions: <br />${output}`;
     }
 
-    allBuildingsCombination = [];
-    const output = captializm(timeInput);
-    const maxEarnings = output[0];
-    const amount = output[1];
-    outputDiv.innerHTML = `Optimal buildings for Max Earning: <br> Theatre &nbsp ${maxEarnings.T}, Pub &nbsp ${maxEarnings.P}, Commercial Park &nbsp ${maxEarnings.C} <br><br> Max Earnings Amount: ${amount}`;
-});
-
-
-const build_times = {
-    T: 5,
-    P: 4,
-    C: 10,
-};
-
-const per_cycle_earnings = {
-    T: 1500,
-    P: 1000,
-    C: 3000,
-};
-
-const buildings = Object.keys(build_times);
-
-can_build = (building, remaining_time) => {
-    return build_times[building] <= remaining_time;
-};
-
-function profit(remaining_time, building) {
-    return (
-        (remaining_time - build_times[building]) * per_cycle_earnings[building]
-    );
-}
-
-function max_profit(remaining_time) {
-    let profits = new Map();
-    for (let building of buildings) {
-        if (!can_build(building, remaining_time)) {
-            profits[building] = 0;
-            continue;
-        }
-        profits[building] = profit(remaining_time, building);
-    }
-
-    return Object.entries(profits).reduce((a, b) => (a[1] > b[1] ? a : b));
-}
-
-function captializm(remaining_time) {
-    let max_this_round = max_profit(remaining_time); // [building, profit]
-
-    if (max_this_round[1] === 0) {
-        return [
-            {
-                T: 0,
-                P: 0,
-                C: 0,
-            },
-            0,
-        ]; // Terminating condition for recursion
-    }
-
-    let building = max_this_round[0];
-    let profit = max_this_round[1];
-
-    let remaining_remaining_time = remaining_time - build_times[building];
-
-    let next_round = captializm(remaining_remaining_time); // [{[buildings]: count_of_appearance}, profit]
-
-    current_round = next_round[0];
-    current_round[building] += 1;
-
-    return [current_round, profit + next_round[1]];
+    let unitsInput = Number(document.getElementById("unitInput").value);
+    maximumProfit(unitsInput);
 }
