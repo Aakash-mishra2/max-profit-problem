@@ -9,7 +9,7 @@ function calculateMaxProfit(timeUnit) {
         combinations: {}
     }));
 
-    for (let i = 4; i <= timeUnit; i++) {   //min units to build = 4
+    for (let i = 4; i <= timeUnit; i++) {   //minimum time units to build any property = 4
         for (let buildType in buildTime) {
             if (i >= buildTime[buildType]) {
                 const currentEarning = (timeUnit - i) * earningsPerUnit[buildType]; //profit by current building hereafter
