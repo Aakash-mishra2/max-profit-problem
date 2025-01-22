@@ -1,43 +1,66 @@
-function maxProfit() {
+function calculateMaxProfit(timeUnit) {
+    const buildTime = { T: 5, P: 4, C: 10 };
 
-    function maximumProfit(n) {
-        let earningsPerUnit = [1500, 1000, 3000];
-        let units = [5, 4, 10];
+    const earningsPerUnit = { T: 1500, P: 1000, C: 3000 };
 
-        let minUnit = Math.min(...units)
-        let totalEarningArray = [];
+    //memoize earnigns and building combination for each time unit
+    let data = new Array(timeUnit + 1).fill(null).map(() => ({
+        earnings: 0,
+        combinations: {}
+    }));
 
-        let tempResult = units.map((value, index) => {
-            let input = n;
-            let earnings = 0;
-            let tempArray = [];
-            while (input >= minUnit) {
-                input -= value;
-                if (input >= 0) {
-                    earnings += input * earningsPerUnit[index];
-                    tempArray.push(earnings);
+    for (let i = 4; i <= timeUnit; i++) {   //min units to build = 4
+        for (let buildType in buildTime) {
+            if (i >= buildTime[buildType]) {
+                const currentEarning = (timeUnit - i) * earningsPerUnit[buildType]; //profit by current building hereafter
+
+                const temp = i - buildTime[buildType];
+                const earnings = data[temp].earnings + currentEarning; //profit by previous buildings till i units
+
+                if (currentEarning && earnings > data[i].earnings) {
+                    data[i].earnings = earnings;
+                    data[i].combinations = {
+                        ...data[temp].combinations,
+                        [buildType]: (data[temp].combinations[buildType] || 0) + 1  // increment building units
+                    };
                 }
             }
-            totalEarningArray.push(earnings);
-            return tempArray;
-        });
-
-        let maxEarning = Math.max(...totalEarningArray);
-
-        let totalOutputArray = totalEarningArray.map((value, index) =>
-            maxEarning === value ? tempResult[index].length : 0);
-
-        let output = totalOutputArray.map((value, index) =>
-            value !== 0 ?
-                `${index + 1}. T: ${index === 0 ? value : 0} P: ${index === 1 ? value : 0} C: ${index === 2 ? value : 0} <br />`
-                : ""
-        ).join("");
-
-        document.getElementById("timeunit").innerHTML = `Time Unit: ${n}`;
-        document.getElementById("earnings").innerHTML = `Earnings: $${maxEarning}`;
-        document.getElementById("solution").innerHTML = `Solutions: <br />${output}`;
+        }
     }
 
-    let unitsInput = Number(document.getElementById("unitInput").value);
-    maximumProfit(unitsInput);
+    data = data.sort((a, b) => a.earnings - b.earnings).reverse();
+    let i = 0;
+    const topCombinations = []; // holds max profit ( data[0].earnings ) combinations
+    while (i < data.length && data[i].earnings === data[0].earnings) {
+        topCombinations.push({
+            T: 0,
+            P: 0,
+            C: 0,
+            ...data[i].combinations
+        });
+        i += 1;
+    }
+    return {
+        earnings: data[0].earnings,
+        combinations: topCombinations
+    };
+}
+
+function displayResults() {
+    const inputUnits = document.getElementById('unitsInput').value;
+    const result = calculateMaxProfit(parseInt(inputUnits, 10));
+    const outputContainer = document.getElementById('outputContainer');
+    outputContainer.innerHTML = '';
+
+    // Display earnings
+    outputContainer.innerHTML += `<h5>Earnings : $ ${result.earnings}</h5>`
+
+    // Display combinations
+    if (parseInt(inputUnits, 10) <= 4) {
+        outputContainer.innerHTML += ""
+    } else {
+        result.combinations.forEach((combination, index) => {
+            outputContainer.innerHTML += `<h6>Solution ${index + 1}: T: ${combination.T} P: ${combination.P} C: ${combination.C}</h6>`
+        });
+    }
 }
